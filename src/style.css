@@ -1,0 +1,571 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --font-primary: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  
+  --color-bg: #030712;
+  --color-text: #f3f4f6;
+  --color-text-muted: #9ca3af;
+  
+  --color-primary: #3b82f6;
+  --color-primary-glow: rgba(59, 130, 246, 0.4);
+  --color-accent: #f59e0b;
+  --color-accent-glow: rgba(245, 158, 11, 0.4);
+  
+  --glass-bg: rgba(17, 24, 39, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+}
+
+/* Canvas Container */
+#canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Hotspots overlay */
+#hotspot-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none; /* Let orbits control drag through overlay */
+}
+
+.hotspot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto; /* Allow clicking on hotspots */
+  cursor: pointer;
+  z-index: 15;
+  will-change: transform;
+}
+
+/* Hotspot Elements */
+.hotspot-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 7, 18, 0.6);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.hotspot-icon::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  animation: hotspot-pulse 2s infinite ease-out;
+}
+
+.hotspot-nav .hotspot-icon {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 15px var(--color-primary-glow);
+}
+
+.hotspot-nav .hotspot-icon::before {
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.hotspot-info .hotspot-icon {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 15px var(--color-accent-glow);
+}
+
+.hotspot-info .hotspot-icon::before {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.hotspot:hover .hotspot-icon {
+  transform: scale(1.15);
+  background: white;
+  color: black;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+}
+
+.hotspot-nav:hover .hotspot-icon {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 0 25px var(--color-primary);
+}
+
+.hotspot-info:hover .hotspot-icon {
+  background: var(--color-accent);
+  color: white;
+  box-shadow: 0 0 25px var(--color-accent);
+}
+
+/* Tooltips */
+.hotspot-tooltip {
+  position: absolute;
+  bottom: 58px;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: white;
+  box-shadow: 0 4px 20px var(--glass-shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hotspot:hover .hotspot-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* HUD Overlay */
+#hud-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+#hud-overlay > * {
+  pointer-events: auto; /* Re-enable pointer events for UI */
+}
+
+/* Top bar (Logo & Active Room) */
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.brand {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.brand h1 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ffffff 0%, #9ca3af 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand span {
+  font-size: 11px;
+  color: var(--color-primary);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.mode-switcher {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  padding: 6px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px var(--glass-shadow);
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn.active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 0 10px var(--color-primary-glow);
+}
+
+.room-badge {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px var(--glass-shadow);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.room-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulse-dot 1.5s infinite;
+}
+
+/* Bottom HUD (Navigation Menu) */
+.hud-footer {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.nav-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  padding: 8px;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px var(--glass-shadow);
+  display: flex;
+  gap: 8px;
+  max-width: 90%;
+  overflow-x: auto;
+}
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.nav-btn.active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+
+/* Info Panel Modal */
+.info-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: 90%;
+  max-width: 450px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  z-index: 30;
+  padding: 28px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.info-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.info-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+.info-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.info-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.info-body {
+  font-family: var(--font-primary);
+  font-size: 15px;
+  line-height: 1.6;
+  color: #d1d5db;
+}
+
+/* Loading Overlay */
+#loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease;
+  pointer-events: auto;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(59, 130, 246, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--color-primary);
+  animation: spin 1s infinite cubic-bezier(0.5, 0.1, 0.4, 0.9);
+  box-shadow: 0 0 20px var(--color-primary-glow);
+  margin-bottom: 24px;
+}
+
+.loading-text {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: white;
+  animation: pulse-text 2s infinite;
+}
+
+/* Transition Flash overlay */
+#flash-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  opacity: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+/* Instructions HUD */
+.instructions {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  padding: 12px 18px;
+  border-radius: 12px;
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 32px var(--glass-shadow);
+}
+
+.instructions svg {
+  color: white;
+  animation: shake 2.5s infinite;
+}
+
+/* Animations */
+@keyframes hotspot-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-text {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 90%, 100% { transform: rotate(0deg); }
+  92% { transform: rotate(-5deg); }
+  94% { transform: rotate(5deg); }
+  96% { transform: rotate(-5deg); }
+  98% { transform: rotate(5deg); }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  #hud-overlay {
+    padding: 16px;
+  }
+  .hud-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .instructions {
+    display: none; /* Hide on mobile to save space */
+  }
+  .nav-panel {
+    justify-content: flex-start;
+    padding: 6px;
+  }
+  .nav-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  .hotspot-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .hotspot-tooltip {
+    bottom: 50px;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+/* VR Button Premium Style Override */
+#VRButton {
+  background: rgba(3, 7, 18, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(12px) !important;
+  color: white !important;
+  font-family: var(--font-display) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px var(--glass-shadow) !important;
+  padding: 12px 24px !important;
+  bottom: 85px !important; /* Position it above the bottom HUD menu */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+
+#VRButton:hover {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 20px var(--color-primary-glow) !important;
+  transform: translateX(-50%) scale(1.05) !important;
+}
