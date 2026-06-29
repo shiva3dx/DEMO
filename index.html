@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>360° Photorealistic Building Walkthrough</title>
+    <script type="module" crossorigin src="/assets/index-BioloLsw.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DQzpoWpD.css">
+  </head>
+  <body>
+    <!-- 3D Canvas Renderer Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Projected 2D HTML Hotspots Overlay -->
+    <div id="hotspot-overlay"></div>
+
+    <!-- Transition Flash Fade Overlay -->
+    <div id="flash-overlay"></div>
+
+    <!-- Loading Screen Overlay -->
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading Panorama...</div>
+    </div>
+
+    <!-- Informational Pop-up Modal -->
+    <div id="info-modal" class="info-modal">
+      <div class="info-header">
+        <h3 id="info-title" class="info-title">Feature Info</h3>
+        <button id="info-close" class="info-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div id="info-body" class="info-body">
+        Details about this item go here.
+      </div>
+    </div>
+
+    <!-- User Interface HUD -->
+    <div id="hud-overlay">
+      <!-- Top header bar -->
+      <div class="hud-header">
+        <div class="brand">
+          <h1>VISTA Walkthrough</h1>
+          <span>Interactive 3D Tour</span>
+        </div>
+        <!-- Mode Switcher -->
+        <div class="mode-switcher" id="mode-switcher">
+          <button class="mode-btn active" id="btn-mode-3d">Real-Time 3D</button>
+          <button class="mode-btn" id="btn-mode-pano">360° Panorama</button>
+        </div>
+        <div id="room-badge" class="room-badge">
+          Dining Room & Kitchen
+        </div>
+      </div>
+
+      <!-- Navigation instructions guide (hidden on mobile) -->
+      <div class="instructions">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+          <path d="M2 12h20"></path>
+        </svg>
+        <span>Drag to rotate, click hotspots to explore</span>
+      </div>
+
+      <!-- Bottom navigation drawer -->
+      <div class="hud-footer">
+        <div id="nav-panel" class="nav-panel">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
