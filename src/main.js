@@ -118,7 +118,7 @@ scene.add(sphereMesh);
 
 // Load Panorama Texture
 const textureLoader = new THREE.TextureLoader();
-textureLoader.load('/assets/panoramas/dining_room_360.jpg', (texture) => {
+textureLoader.load(import.meta.env.BASE_URL + 'assets/panoramas/dining_room_360.jpg', (texture) => {
   texture.colorSpace = THREE.SRGBColorSpace;
   sphereMat.map = texture;
   sphereMat.needsUpdate = true;
@@ -297,7 +297,7 @@ loadingOverlay.style.display = 'flex';
 loadingOverlay.style.opacity = '1';
 
 loader.load(
-  '/assets/models/dining_room_kitchen.glb',
+  import.meta.env.BASE_URL + 'assets/models/dining_room_kitchen.glb',
   (gltf) => {
     modelScene = gltf.scene;
     
