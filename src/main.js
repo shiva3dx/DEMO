@@ -289,7 +289,7 @@ function hideInfoModal() {
 
 // --- Load Model ---
 const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+dracoLoader.setDecoderPath(import.meta.env.BASE_URL + 'assets/libs/draco/gltf/');
 
 const loader = new GLTFLoader();
 loader.setDRACOLoader(dracoLoader);
