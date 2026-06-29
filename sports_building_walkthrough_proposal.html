@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Sports Building Walkthrough Proposal - Riva Studios</title>
+    <title>3D Sports Building Walkthrough Proposal - RIVA Studios</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -64,6 +64,8 @@
             font-weight: 600;
             letter-spacing: 2px;
             text-transform: uppercase;
+            margin-top: 2px;
+            display: block;
         }
 
         .meta-area {
@@ -78,13 +80,15 @@
 
         /* Content elements */
         h2 {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--color-primary);
-            margin-top: 30px;
+            margin-top: 35px;
             margin-bottom: 15px;
             border-left: 4px solid var(--color-secondary);
             padding-left: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         p {
@@ -104,11 +108,34 @@
             font-size: 15px;
         }
 
+        /* Check list styling */
+        .check-list {
+            list-style: none;
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .check-list li {
+            position: relative;
+            margin-bottom: 8px;
+            font-size: 15px;
+            color: #4b5563;
+        }
+
+        .check-list li::before {
+            content: "✔";
+            color: var(--color-secondary);
+            font-weight: 700;
+            position: absolute;
+            left: -20px;
+            top: 0;
+        }
+
         /* Package boxes */
         .package-container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
             margin-top: 20px;
             margin-bottom: 30px;
         }
@@ -116,10 +143,9 @@
         .package-card {
             border: 1px solid var(--color-border);
             border-radius: 8px;
-            padding: 24px;
+            padding: 28px;
             background-color: var(--color-light);
             position: relative;
-            transition: border-color 0.2s;
         }
 
         .package-card.recommended {
@@ -128,8 +154,8 @@
 
         .badge {
             position: absolute;
-            top: 24px;
-            right: 24px;
+            top: 28px;
+            right: 28px;
             background-color: var(--color-secondary);
             color: white;
             font-size: 11px;
@@ -144,26 +170,51 @@
             font-size: 18px;
             font-weight: 700;
             color: var(--color-primary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .package-description {
-            font-size: 14px;
+            font-size: 14.5px;
             color: #4b5563;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-style: italic;
         }
 
         .package-price {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             color: var(--color-dark);
-            margin-bottom: 5px;
+            margin-top: 20px;
+            border-top: 1px solid var(--color-border);
+            padding-top: 15px;
         }
 
         .package-price span {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 400;
             color: var(--color-text-muted);
+        }
+
+        /* Demo box */
+        .demo-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .demo-box p {
+            margin-bottom: 5px;
+            color: #1e293b;
+        }
+
+        .demo-box a {
+            color: var(--color-secondary);
+            text-decoration: underline;
+            font-weight: 600;
         }
 
         /* Timeline table */
@@ -171,7 +222,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             font-size: 14px;
         }
 
@@ -189,6 +240,13 @@
 
         td strong {
             color: var(--color-dark);
+        }
+
+        .schedule-note {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin-bottom: 30px;
+            font-style: italic;
         }
 
         /* Sign-off section */
@@ -214,6 +272,7 @@
             font-size: 12px;
             color: var(--color-text-muted);
             margin-top: 5px;
+            line-height: 1.4;
         }
 
         /* Print styles optimization */
@@ -243,7 +302,7 @@
         <!-- Header -->
         <div class="proposal-header">
             <div class="logo-area">
-                <h1>Riva Studios</h1>
+                <h1>RIVA Studios</h1>
                 <span>3D & Interactive Media</span>
             </div>
             <div class="meta-area">
@@ -255,59 +314,66 @@
 
         <!-- Project Intro -->
         <h2>Project Overview</h2>
-        <p>Riva Studios is pleased to present this proposal for developing an interactive 3D walkthrough of your sports building. Our goal is to create an immersive, high-fidelity experience that integrates seamlessly into your website, allowing visitors to explore the sports facilities on desktop, mobile, and VR headsets.</p>
+        <p>RIVA Studios is pleased to present this proposal for creating an Interactive 3D Sports Building Experience that can be embedded directly into your website.</p>
+        <p>This virtual experience allows visitors to explore your sports facility online from anywhere, helping them understand the space before they visit. It creates a modern digital presence, improves customer engagement, and showcases your facility in a unique and professional way.</p>
+        <p>The walkthrough will work seamlessly across desktop, mobile devices, and supported VR headsets.</p>
 
-        <!-- Live Demo Link Callout -->
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; border-radius: 8px; margin-bottom: 25px; font-family: 'Inter', sans-serif;">
-            <p style="margin: 0; color: #15803d; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">🔗 Interactive Project Demo Link:</p>
-            <p style="margin: 6px 0 0 0; font-size: 15px; color: #1e293b;">
-                View the proof-of-concept here: 
-                <a href="https://shiva3dx.github.io/DEMO/" target="_blank" style="color: #0f766e; text-decoration: underline; font-weight: 600;">shiva3dx.github.io/DEMO/</a> 
-                (Supports desktop keyboard walking, mobile touch dragging, and immersive VR mode).
-            </p>
+        <!-- Interactive Demo -->
+        <h2>Interactive Demo</h2>
+        <div class="demo-box">
+            <p><strong>Live Demo:</strong></p>
+            <p>🔗 <a href="https://shiva3dx.github.io/DEMO/" target="_blank">https://shiva3dx.github.io/DEMO/</a></p>
+            <p style="margin-top: 8px; font-size: 14px; color: #475569;">Experience the walkthrough on desktop, mobile, or VR to understand the interaction and navigation style.</p>
         </div>
 
         <!-- Pricing Packages -->
-        <h2>Pricing Packages</h2>
-        <p>To provide flexibility for your budget, we offer two implementation options:</p>
+        <h2>Pricing & Implementation Options</h2>
+        <p>To provide flexibility for your project requirements, we offer two implementation packages:</p>
         
         <div class="package-container">
             <!-- Package 1 (Recommended) -->
             <div class="package-card recommended">
                 <span class="badge">Recommended</span>
-                <div class="package-title">Option 1: 360° Photorealistic Panorama Tour</div>
+                <div class="package-title">Option 1 – 360° Virtual Tour</div>
                 <div class="package-description">
-                    Users navigate between locations (e.g. lobby, gym, court) by clicking responsive hotspots. Look around 360° with smooth transitions.
+                    Perfect for businesses looking for a premium presentation with fast loading and affordable pricing. Visitors explore different areas of the sports facility by clicking interactive hotspots between locations (lobby, courts, gym, reception, etc.).
                 </div>
-                <ul>
-                    <li><strong>Visual Quality</strong>: Photorealistic rendering (baked offline using Blender Cycles).</li>
-                    <li><strong>Static Deliverables</strong>: **10 High-Resolution Rendered Images** for print/marketing use.</li>
-                    <li><strong>Loading Performance</strong>: Ultra-fast load times (<2 seconds), optimized for mobile networks.</li>
-                    <li><strong>VR Support</strong>: Fully compatible with WebXR (Meta Quest, Apple Vision Pro) directly in browser.</li>
-                    <li><strong>Timeline</strong>: 3–4 Days</li>
+                <p><strong>Includes:</strong></p>
+                <ul class="check-list">
+                    <li>Photorealistic 360° views</li>
+                    <li>Smooth hotspot navigation</li>
+                    <li>Mobile, Desktop & VR compatibility</li>
+                    <li>Website integration</li>
+                    <li>Fast loading performance</li>
+                    <li>10 High-Resolution Rendered Images for marketing and presentations</li>
                 </ul>
-                <div class="package-price">₹30,000.00 <span>INR (Exclusive of GST)</span></div>
+                <p><strong>Timeline:</strong> 3–4 Working Days</p>
+                <div class="package-price">₹30,000 + GST <span>(Flat Fee)</span></div>
             </div>
 
             <!-- Package 2 -->
             <div class="package-card">
-                <div class="package-title">Option 2: Interactive Real-Time 3D Walkthrough</div>
+                <div class="package-title">Option 2 – Full Interactive 3D Walkthrough</div>
                 <div class="package-description">
-                    A video-game style walkthrough allowing users to walk freely inside the 3D model using WASD keys or click-to-move with full physics and collision.
+                    Best for businesses wanting a fully immersive experience similar to a video game. Visitors can freely walk around the building, explore every area naturally, and experience the facility from any angle.
                 </div>
-                <ul>
-                    <li><strong>Visual Quality</strong>: High (real-time graphics running dynamically in browser).</li>
-                    <li><strong>Static Deliverables</strong>: **10 High-Resolution Rendered Images** for print/marketing use.</li>
-                    <li><strong>Navigation</strong>: Continuous free-roaming, collision detection (prevents passing through walls).</li>
-                    <li><strong>Optimization</strong>: Re-topologizing and decimation of the client's 1.5 GB model down to ~25MB.</li>
-                    <li><strong>Timeline</strong>: 10 Days</li>
+                <p><strong>Includes:</strong></p>
+                <ul class="check-list">
+                    <li>Free movement throughout the building</li>
+                    <li>Realistic interaction and navigation</li>
+                    <li>Mobile & Desktop support</li>
+                    <li>Website integration</li>
+                    <li>Model optimization for smooth online performance</li>
+                    <li>10 High-Resolution Rendered Images</li>
+                    <li>High-quality lighting and visual presentation</li>
                 </ul>
-                <div class="package-price">₹75,000.00 <span>INR (Exclusive of GST)</span></div>
+                <p><strong>Timeline:</strong> 10 Working Days</p>
+                <div class="package-price">₹75,000 + GST <span>(Flat Fee)</span></div>
             </div>
         </div>
 
-        <!-- Schedule / Roadmap -->
-        <h2>Project Schedule (Option 1: 360° Tour)</h2>
+        <!-- Project Schedule -->
+        <h2>Project Schedule</h2>
         <table>
             <thead>
                 <tr>
@@ -318,42 +384,80 @@
             <tbody>
                 <tr>
                     <td><strong>Day 1</strong></td>
-                    <td>Blender scene camera setups, materials verification, lighting check.</td>
+                    <td>
+                        • Review building model<br>
+                        • Scene preparation<br>
+                        • Materials & lighting setup
+                    </td>
                 </tr>
                 <tr>
                     <td><strong>Day 2</strong></td>
-                    <td>Cycles high-resolution 360° spherical rendering.</td>
+                    <td>
+                        • High-quality rendering<br>
+                        • Environment setup
+                    </td>
                 </tr>
                 <tr>
                     <td><strong>Day 3</strong></td>
-                    <td>WebGL code integration, hotspots placement, and UI menu configuration.</td>
+                    <td>
+                        • Interactive walkthrough development<br>
+                        • Navigation and user interface
+                    </td>
                 </tr>
                 <tr>
                     <td><strong>Day 4</strong></td>
-                    <td>Review, final testing, and embedding on the client's website.</td>
+                    <td>
+                        • Testing<br>
+                        • Client review<br>
+                        • Website integration
+                    </td>
                 </tr>
             </tbody>
         </table>
+        <p class="schedule-note">(Option 2 may require additional development days depending on project complexity.)</p>
 
-        <!-- Payment Terms -->
+        <!-- Commercial Terms -->
         <h2>Commercial Terms</h2>
+        <p><strong>Payment Terms:</strong></p>
         <ul>
-            <li><strong>Advance Payment</strong>: 50% upon signing/acceptance of proposal to initialize project.</li>
-            <li><strong>Final Balance</strong>: 50% upon project completion and successful integration on client's site.</li>
-            <li><strong>Client Deliverables</strong>: Client is responsible for providing the building CAD/3D model at the start.</li>
+            <li>50% Advance to initiate the project.</li>
+            <li>50% Balance upon successful completion before final delivery.</li>
         </ul>
+        <p><strong>Client Requirements:</strong></p>
+        <p>The client will provide:</p>
+        <ul>
+            <li>Building CAD/3D Model</li>
+            <li>Logos (if required)</li>
+            <li>Branding assets (if required)</li>
+        </ul>
+
+        <!-- Why Choose Riva Studios -->
+        <h2>Why Choose RIVA Studios?</h2>
+        <ul class="check-list">
+            <li>Professional-quality visual presentation</li>
+            <li>Optimized for desktop, mobile & VR</li>
+            <li>Fast loading and smooth performance</li>
+            <li>Website integration included</li>
+            <li>Dedicated support during development</li>
+            <li>Designed to impress clients, investors, and visitors</li>
+        </ul>
+
+        <!-- Final Note -->
+        <h2>Final Note</h2>
+        <p>Thank you for considering RIVA Studios.</p>
+        <p>We look forward to helping you showcase your sports facility through an engaging interactive experience that creates a lasting impression on your visitors.</p>
 
         <!-- Sign-off Block -->
         <div class="signature-section">
             <div class="signature-block">
                 <p>Prepared By:</p>
                 <div class="signature-line"></div>
-                <p class="signature-text">Shivachandra Eramalla<br>Cofounder, Riva Studios</p>
+                <p class="signature-text">Shivachandra Eramalla<br>Cofounder, RIVA Studios</p>
             </div>
             <div class="signature-block">
                 <p>Accepted By:</p>
                 <div class="signature-line"></div>
-                <p class="signature-text">Client Representative Representative<br>Date:</p>
+                <p class="signature-text">Client Representative<br>Date:</p>
             </div>
         </div>
 
