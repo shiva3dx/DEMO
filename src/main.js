@@ -14,8 +14,8 @@ let sphereMesh = null;
 let sphereMat = null;
 let activeHotspots = [];
 let isTransitioning = false;
-let currentSpeed = 0.06; // Dynamic walking speed (re-calculated based on model size)
-const keys = { w: false, a: false, s: false, d: false, q: false, e: false };
+let currentSpeed = 0.04; // Dynamic walking speed (re-calculated based on model size)
+const keys = { w: false, a: false, s: false, d: false, q: false, e: false, shift: false };
 
 // --- DOM Elements ---
 const container = document.getElementById('canvas-container');
@@ -50,6 +50,9 @@ const updateHUDInstructions = () => {
         <span>Height:</span>
         <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); color: white;">E</kbd> (Up)
         <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); color: white;">Q</kbd> (Down)
+        <span style="color: rgba(255,255,255,0.3)">|</span>
+        <span>Sprint:</span>
+        <kbd style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); color: white;">SHIFT</kbd>
         <span style="color: rgba(255,255,255,0.3)">|</span>
         <span>Drag Move:</span>
         <span style="color: white; font-weight: 600;">Middle Mouse Button</span>
@@ -164,6 +167,7 @@ window.addEventListener('keydown', (e) => {
   if (key === 'd' || key === 'arrowright') keys.d = true;
   if (key === 'q') keys.q = true;
   if (key === 'e') keys.e = true;
+  if (e.key === 'Shift') keys.shift = true;
 });
 
 window.addEventListener('keyup', (e) => {
@@ -174,6 +178,7 @@ window.addEventListener('keyup', (e) => {
   if (key === 'd' || key === 'arrowright') keys.d = false;
   if (key === 'q') keys.q = false;
   if (key === 'e') keys.e = false;
+  if (e.key === 'Shift') keys.shift = false;
 });
 
 // Info modal close listener
@@ -337,9 +342,9 @@ loader.load(
     roomBounds.expandByScalar(-0.5); // shrink bounds by 0.5m
     
     // 2. Calibrate Walking Speed
-    // If the model is 1km wide, walk speed scales up to make movement fast/responsive!
-    currentSpeed = Math.max(0.06, modelDiagonal * 0.0035);
-    console.log(`Calibrated Speed: ${currentSpeed.toFixed(3)} units/frame based on size: ${modelDiagonal.toFixed(1)}m`);
+    // Base walk speed scales slightly for larger spaces, but stays comfortable like a human walk.
+    currentSpeed = Math.max(0.04, modelDiagonal * 0.00008);
+    console.log(`Calibrated Base Speed: ${currentSpeed.toFixed(4)} units/frame based on size: ${modelDiagonal.toFixed(1)}m`);
     
     // 3. Calibrate Fog Density (Prevents pitch-black fog on large models)
     if (scene.fog) {
@@ -506,6 +511,10 @@ btnPano.addEventListener('click', () => setMode('pano'));
 function updateMovement() {
   if (!modelScene || isTransitioning || currentMode !== '3d') return;
   
+  // Hold Shift to run (5x speed multiplier), otherwise standard human walking speed
+  const speedMultiplier = keys.shift ? 5 : 1;
+  const speed = currentSpeed * speedMultiplier;
+  
   const moveDirection = new THREE.Vector3();
   
   const forward = new THREE.Vector3();
@@ -525,11 +534,11 @@ function updateMovement() {
   if (keys.q) moveDirection.y -= 1;
   
   if (moveDirection.lengthSq() > 0) {
-    const verticalSpeed = moveDirection.y * currentSpeed;
+    const verticalSpeed = moveDirection.y * speed;
     moveDirection.y = 0;
     
     if (moveDirection.lengthSq() > 0) {
-      moveDirection.normalize().multiplyScalar(currentSpeed);
+      moveDirection.normalize().multiplyScalar(speed);
     }
     moveDirection.y = verticalSpeed;
     
@@ -551,7 +560,17 @@ renderer.setAnimationLoop(() => {
   // Enforce boundary collision checks in 3D Mode to keep camera inside room bounds
   if (currentMode === '3d' && modelScene && roomBounds && !isTransitioning) {
     const prevPos = camera.position.clone();
-    camera.position.clamp(roomBounds.min, roomBounds.max);
+    
+    // Get size parameters of the active boundary box
+    const size = new THREE.Vector3();
+    roomBounds.getSize(size);
+    
+    // Strict height floor clamping (prevents camera from sinking below eye height from the floor)
+    const eyeHeight = Math.max(1.6, size.y * 0.05);
+    const minYHeight = roomBounds.min.y + eyeHeight;
+    
+    const minBounds = new THREE.Vector3(roomBounds.min.x, minYHeight, roomBounds.min.z);
+    camera.position.clamp(minBounds, roomBounds.max);
     
     const clampedOffset = camera.position.clone().sub(prevPos);
     if (clampedOffset.lengthSq() > 0) {
