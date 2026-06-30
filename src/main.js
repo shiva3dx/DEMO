@@ -4,6 +4,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+import { Octree } from 'three/examples/jsm/math/Octree.js';
+import { Capsule } from 'three/examples/jsm/math/Capsule.js';
 import { gsap } from 'gsap';
 
 // --- State & Config ---
@@ -16,6 +18,11 @@ let activeHotspots = [];
 let isTransitioning = false;
 let currentSpeed = 0.04; // Dynamic walking speed (re-calculated based on model size)
 const keys = { w: false, a: false, s: false, d: false, q: false, e: false, shift: false };
+
+// --- Collision System Setup ---
+const worldOctree = new Octree();
+// Player Capsule (Radius: 0.35m, Height: 1.0m, Camera Eye-Level is at Capsule End + 0.3m = 1.3m relative height)
+const playerCapsule = new Capsule(new THREE.Vector3(0, 0.35, 0), new THREE.Vector3(0, 1.35, 0), 0.35);
 
 // --- DOM Elements ---
 const container = document.getElementById('canvas-container');
@@ -361,6 +368,10 @@ loader.load(
     dirLight.shadow.camera.far = modelDiagonal * 2;
     dirLight.shadow.camera.updateProjectionMatrix();
     
+    // 5. Populate the Collision Octree with model meshes
+    worldOctree.fromGraphNode(modelScene);
+    console.log("Collision Octree successfully built from model graph!");
+    
     // Add to scene (only visible if currentMode is '3d')
     if (currentMode === '3d') {
       scene.add(modelScene);
@@ -418,6 +429,10 @@ function initialize3DMode() {
     RIGHT: THREE.MOUSE.NONE
   };
   controls.update();
+
+  // Initialize Capsule starting position inside boundaries
+  playerCapsule.start.set(camera.position.x, camera.position.y - 1.3, camera.position.z);
+  playerCapsule.end.set(camera.position.x, camera.position.y - 0.3, camera.position.z);
 
   // Create 3D Hotspots
   hotspotOverlay.innerHTML = '';
@@ -507,7 +522,7 @@ function setMode(mode) {
 btn3d.addEventListener('click', () => setMode('3d'));
 btnPano.addEventListener('click', () => setMode('pano'));
 
-// --- WASD + Q/E Height Movement Controller ---
+// --- WASD + Q/E Height Movement Controller with Sliding Octree Collisions ---
 function updateMovement() {
   if (!modelScene || isTransitioning || currentMode !== '3d') return;
   
@@ -542,8 +557,28 @@ function updateMovement() {
     }
     moveDirection.y = verticalSpeed;
     
-    camera.position.add(moveDirection);
-    controls.target.add(moveDirection);
+    // --- 3D Mesh Collision Processing ---
+    const lookDir = new THREE.Vector3();
+    camera.getWorldDirection(lookDir);
+    
+    // Sync the player's collision capsule to the current camera position
+    playerCapsule.start.copy(camera.position).y -= 1.3;
+    playerCapsule.end.copy(camera.position).y -= 0.3;
+    
+    // Translate the capsule by the intended move vector
+    playerCapsule.translate(moveDirection);
+    
+    // Check intersection with any mesh polygon in the octree
+    const result = worldOctree.capsuleIntersect(playerCapsule);
+    if (result) {
+      // Push capsule back along the normal to resolve the collision (slides smoothly against walls)
+      playerCapsule.translate(result.normal.multiplyScalar(result.depth));
+    }
+    
+    // Copy the collision-resolved capsule position back to the camera
+    camera.position.copy(playerCapsule.end).y += 0.3; // camera offset Y
+    
+    controls.target.copy(camera.position).add(lookDir.multiplyScalar(0.05));
     controls.update();
   }
 }
