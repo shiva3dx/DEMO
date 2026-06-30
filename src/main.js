@@ -369,8 +369,8 @@ loader.load(
     dirLight.shadow.camera.updateProjectionMatrix();
     
     // 5. Populate the Collision Octree with model meshes
-    worldOctree.fromGraphNode(modelScene);
-    console.log("Collision Octree successfully built from model graph!");
+    // worldOctree.fromGraphNode(modelScene);
+    console.log("Collision Octree temporarily disabled to diagnose memory crash.");
     
     // Add to scene (only visible if currentMode is '3d')
     if (currentMode === '3d') {
