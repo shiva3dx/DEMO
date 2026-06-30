@@ -14,6 +14,7 @@ let sphereMesh = null;
 let sphereMat = null;
 let activeHotspots = [];
 let isTransitioning = false;
+let currentSpeed = 0.06; // Dynamic walking speed (re-calculated based on model size)
 const keys = { w: false, a: false, s: false, d: false, q: false, e: false };
 
 // --- DOM Elements ---
@@ -35,7 +36,7 @@ const infoBody = document.getElementById('info-body');
 const infoClose = document.getElementById('info-close');
 
 // Setup instructions UI for 3D Walkthrough
-roomBadge.textContent = "Dining Room & Kitchen";
+roomBadge.textContent = "Interactive Showcase";
 const updateHUDInstructions = () => {
   if (currentMode === '3d') {
     navPanel.innerHTML = `
@@ -69,11 +70,13 @@ updateHUDInstructions();
 // --- Three.js Setup ---
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0a0f);
+
+// Create Fog (We will adjust its density dynamically based on model size)
 scene.fog = new THREE.FogExp2(0x0a0a0f, 0.015);
 
 // Camera
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 1.8, 5); // Start at standard eye-height position
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
+camera.position.set(0, 1.8, 5); // Default eye-height position
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -130,9 +133,15 @@ textureLoader.load(import.meta.env.BASE_URL + 'assets/panoramas/dining_room_360.
 const lightGroup = new THREE.Group();
 scene.add(lightGroup);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+// Ambient Light (Provides baseline lighting)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 lightGroup.add(ambientLight);
 
+// Hemisphere Light (Essential for large outdoor scenes - provides sky/ground ambient light)
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+lightGroup.add(hemiLight);
+
+// Primary Directional Light (Creates direct shadows)
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(10, 20, 10);
 dirLight.castShadow = true;
@@ -141,6 +150,7 @@ dirLight.shadow.mapSize.height = 2048;
 dirLight.shadow.bias = -0.0001;
 lightGroup.add(dirLight);
 
+// Blue Fill Light
 const fillLight = new THREE.DirectionalLight(0x3b82f6, 0.3);
 fillLight.position.set(-10, 10, -10);
 lightGroup.add(fillLight);
@@ -256,6 +266,7 @@ function create3DHotspot(hotspot) {
   });
 }
 
+// Project 3D coordinate hotspots onto the 2D HTML overlay
 function updateHotspotsProjection() {
   const tempV = new THREE.Vector3();
   
@@ -315,13 +326,35 @@ loader.load(
       }
     });
     
-    // Calculate model boundaries
+    // --- Scale-Dependent Calibration ---
     const box = new THREE.Box3().setFromObject(modelScene);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
+    const modelDiagonal = size.length();
     
+    // 1. Set Collision Boundaries
     roomBounds = box.clone();
     roomBounds.expandByScalar(-0.5); // shrink bounds by 0.5m
+    
+    // 2. Calibrate Walking Speed
+    // If the model is 1km wide, walk speed scales up to make movement fast/responsive!
+    currentSpeed = Math.max(0.06, modelDiagonal * 0.0035);
+    console.log(`Calibrated Speed: ${currentSpeed.toFixed(3)} units/frame based on size: ${modelDiagonal.toFixed(1)}m`);
+    
+    // 3. Calibrate Fog Density (Prevents pitch-black fog on large models)
+    if (scene.fog) {
+      scene.fog.density = Math.min(0.015, 3 / modelDiagonal);
+      console.log(`Calibrated Fog Density: ${scene.fog.density.toFixed(5)}`);
+    }
+    
+    // 4. Calibrate Lighting Bounds (Scale the Directional Light for 1km models)
+    dirLight.position.set(center.x + size.x * 0.5, center.y + size.y + modelDiagonal * 0.5, center.z + size.z * 0.5);
+    dirLight.shadow.camera.left = -modelDiagonal * 0.6;
+    dirLight.shadow.camera.right = modelDiagonal * 0.6;
+    dirLight.shadow.camera.top = modelDiagonal * 0.6;
+    dirLight.shadow.camera.bottom = -modelDiagonal * 0.6;
+    dirLight.shadow.camera.far = modelDiagonal * 2;
+    dirLight.shadow.camera.updateProjectionMatrix();
     
     // Add to scene (only visible if currentMode is '3d')
     if (currentMode === '3d') {
@@ -361,16 +394,18 @@ function initialize3DMode() {
   const box = new THREE.Box3().setFromObject(modelScene);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
+  const modelDiagonal = size.length();
 
-  // Setup camera at eye-level inside room
-  camera.position.set(center.x, center.y + 1.8, center.z + size.z * 0.4);
+  // Setup camera at eye-level inside room/stadium
+  // Position camera slightly offset from center
+  camera.position.set(center.x, center.y + Math.max(1.8, size.y * 0.1), center.z + size.z * 0.2);
   controls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -0.05));
   
-  // Set normal 3D controls parameters
+  // Set normal 3D controls parameters (scale maxDistance with model diagonal)
   controls.enablePan = true;
   controls.enableZoom = true;
   controls.minDistance = 0.1;
-  controls.maxDistance = 30;
+  controls.maxDistance = Math.max(30, modelDiagonal * 1.5);
   
   controls.mouseButtons = {
     LEFT: THREE.MOUSE.ROTATE,
@@ -383,20 +418,21 @@ function initialize3DMode() {
   hotspotOverlay.innerHTML = '';
   activeHotspots = [];
   
+  // Place hotspots relative to the center of the active model
   const hotspots3D = [
     {
-      title: "Dining Area",
-      content: "Contemporary dining layout featuring custom oak furniture, ambient architectural lighting, and open layout connecting to the kitchen.",
-      pos3D: center.clone().add(new THREE.Vector3(-1.0, 0.4, -0.5)),
-      camPos: center.clone().add(new THREE.Vector3(-1.0, 1.8, 1.0)),
-      lookTarget: center.clone().add(new THREE.Vector3(-1.0, 1.5, -0.5))
+      title: "West Wing Area",
+      content: "Main entrance area showing structural pillars and connection grids.",
+      pos3D: center.clone().add(new THREE.Vector3(-size.x * 0.2, size.y * 0.1, -size.z * 0.1)),
+      camPos: center.clone().add(new THREE.Vector3(-size.x * 0.2, size.y * 0.2 + 2, size.z * 0.1)),
+      lookTarget: center.clone().add(new THREE.Vector3(-size.x * 0.2, size.y * 0.1, -size.z * 0.1))
     },
     {
-      title: "Gourmet Kitchen",
-      content: "Fully integrated smart appliances, solid marble countertops, and seamless flush cabinetry designed for modern culinary experiences.",
-      pos3D: center.clone().add(new THREE.Vector3(1.2, 0.4, 0.8)),
-      camPos: center.clone().add(new THREE.Vector3(1.2, 1.8, -0.4)),
-      lookTarget: center.clone().add(new THREE.Vector3(1.2, 1.5, 0.8))
+      title: "East Wing Area",
+      content: "Opposite viewing deck demonstrating spatial scale and material lighting.",
+      pos3D: center.clone().add(new THREE.Vector3(size.x * 0.2, size.y * 0.1, size.z * 0.1)),
+      camPos: center.clone().add(new THREE.Vector3(size.x * 0.2, size.y * 0.2 + 2, -size.z * 0.1)),
+      lookTarget: center.clone().add(new THREE.Vector3(size.x * 0.2, size.y * 0.1, size.z * 0.1))
     }
   ];
   hotspots3D.forEach(create3DHotspot);
@@ -425,8 +461,8 @@ function initializePanoMode() {
   activeHotspots = [];
   
   create3DHotspot({
-    title: "Dining Room (Cycles Render)",
-    content: "A photorealistic 360-degree render of the dining space using Blender Cycles, demonstrating the perfect mirror reflections and soft architectural ambient lighting.",
+    title: "Project Showcase (360°)",
+    content: "Immersive panoramic viewport demonstrating standard lighting, mirror-like reflections, and environment reflections.",
     pos3D: get3DPosition(40, -10, 45), // float in front
     isPanoHotspot: true
   });
@@ -470,7 +506,6 @@ btnPano.addEventListener('click', () => setMode('pano'));
 function updateMovement() {
   if (!modelScene || isTransitioning || currentMode !== '3d') return;
   
-  const speed = 0.06; // walking speed
   const moveDirection = new THREE.Vector3();
   
   const forward = new THREE.Vector3();
@@ -490,11 +525,11 @@ function updateMovement() {
   if (keys.q) moveDirection.y -= 1;
   
   if (moveDirection.lengthSq() > 0) {
-    const verticalSpeed = moveDirection.y * speed;
+    const verticalSpeed = moveDirection.y * currentSpeed;
     moveDirection.y = 0;
     
     if (moveDirection.lengthSq() > 0) {
-      moveDirection.normalize().multiplyScalar(speed);
+      moveDirection.normalize().multiplyScalar(currentSpeed);
     }
     moveDirection.y = verticalSpeed;
     
