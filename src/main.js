@@ -389,7 +389,8 @@ loader.load(
   },
   (xhr) => {
     if (xhr.total > 0) {
-      const progress = Math.round((xhr.loaded / xhr.total) * 100);
+      let progress = Math.round((xhr.loaded / xhr.total) * 100);
+      if (progress > 99) progress = 99; // Clamp at 99% until parsing is fully complete
       loadingText.textContent = `Loading 3D Model: ${progress}%`;
     } else {
       const mbLoaded = (xhr.loaded / (1024 * 1024)).toFixed(1);
